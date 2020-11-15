@@ -5,6 +5,7 @@ import { logger } from '../config/logger.js';
 const transactionRouter = express.Router();
 
 transactionRouter.get('/', transactionService.index);
+transactionRouter.get('/periods', transactionService.periodsList);
 transactionRouter.post('/', transactionService.create);
 transactionRouter.put('/', transactionService.update);
 transactionRouter.delete('/', transactionService.remove);
