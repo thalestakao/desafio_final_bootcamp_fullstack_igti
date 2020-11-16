@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import ModalTransaction from './components/ModalTransaction';
 import PeriodSelector from './components/PeriodSelector';
 import Registers from './components/registers/Registers';
 import Result from './components/Result';
@@ -10,6 +11,10 @@ export default function App() {
   const [incomes, setIncomes] = useState(0);
   const [expenses, setExpenses] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sucessMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [selectedRegister, setSelectedRegister] = useState({});
   const handleChangePeriodSelector = (period) => {
     TransactionService.getByPeriods(period).then((response) => {
       const {
@@ -26,6 +31,57 @@ export default function App() {
       setRegisters(registers);
     });
   };
+  const handleClickedAndSelectedRegisterCreateOrUpdate = (registerEdit) => {
+    setSelectedRegister(registerEdit);
+    setIsModalOpen(true);
+  };
+  const handleClickedAndSelectedRegisterToRemove = (item) => {
+    TransactionService.remove(item._id).then((response) => {
+      if (response.data._id) {
+        setSuccessMessage(
+          `Registro removido com sucesso do periodo ${item.yearMonth} de valor R$ ${item.type}${item.value}!`
+        );
+        handleChangePeriodSelector(response.data.yearMonth);
+      } else {
+        setErrorMessage('Erro ao tentar salvar o registro!');
+      }
+    });
+  };
+  const handleOnClose = (event) => {
+    setIsModalOpen(false);
+    setSelectedRegister({});
+  };
+  const handlePersistData = (formData, idSelected) => {
+    if (!idSelected) {
+      TransactionService.create(formData).then((response) => {
+        if (response.data._id) {
+          setSuccessMessage(
+            `Registro salvo com sucesso do periodo ${formData.yearMonth} de valor R$ ${formData.type}${formData.value}!`
+          );
+          handleChangePeriodSelector(response.data.yearMonth);
+        } else {
+          setErrorMessage('Erro ao tentar salvar o registro!');
+        }
+      });
+    } else {
+      TransactionService.update(formData, idSelected).then((response) => {
+        if (response.data._id) {
+          setSuccessMessage(
+            `Registro alterado com sucesso do periodo ${formData.yearMonth} de valor R$ ${formData.type}${formData.value}!`
+          );
+          handleChangePeriodSelector(response.data.yearMonth);
+        } else {
+          setErrorMessage('Erro ao tentar salvar o registro!');
+        }
+      });
+    }
+    setIsModalOpen(false);
+  };
+  useEffect(() => {
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 5000);
+  }, [sucessMessage]);
   return (
     <div className="container">
       <div className="row">
@@ -47,8 +103,32 @@ export default function App() {
           totalValue={totalValue}
         ></Result>
       </div>
+      <div className="row">
+        <button
+          className="waves-effect waves-light btn"
+          onClick={(e) => setIsModalOpen(true)}
+        >
+          + NOVO LANÇAMENTO
+        </button>
+      </div>
+      <div className="row">
+        <span>{sucessMessage || errorMessage}</span>
+      </div>
       <div>
-        <Registers registers={registers}></Registers>
+        <Registers
+          registers={registers}
+          onClickedEditRegisterApp={
+            handleClickedAndSelectedRegisterCreateOrUpdate
+          }
+          onClickedRemoveRegisterApp={handleClickedAndSelectedRegisterToRemove}
+        ></Registers>
+        {isModalOpen && (
+          <ModalTransaction
+            onSave={handlePersistData}
+            selected={selectedRegister}
+            onClose={handleOnClose}
+          ></ModalTransaction>
+        )}
       </div>
     </div>
   );

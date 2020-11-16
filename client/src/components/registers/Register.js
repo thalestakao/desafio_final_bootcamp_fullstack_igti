@@ -3,7 +3,13 @@ import css from './register.module.css';
 import { formatNumber } from '../../helpers/formData';
 
 export default function Register(props) {
-  const { day, category, description, value, type } = props.item;
+  const handleClickEdit = () => {
+    props.OnClickEditRegister(props.item);
+  };
+  const handleClickRemove = () => {
+    props.OnClickRemoveRegister(props.item);
+  };
+  const { day, category, description, value, type, _id } = props.item;
   return (
     <div className={`${type === '+' ? css.incomeBox : css.expenseBox}`}>
       <div className={`${css.dayBox}`}>
@@ -17,8 +23,20 @@ export default function Register(props) {
         <div>R$ {formatNumber(value)}</div>
       </div>
       <div className={css.icon}>
-        <i className="material-icons">create</i>
-        <i className="material-icons">delete</i>
+        <i
+          className="material-icons"
+          style={{ cursor: 'pointer' }}
+          onClick={handleClickEdit}
+        >
+          create
+        </i>
+        <i
+          className="material-icons"
+          style={{ cursor: 'pointer' }}
+          onClick={handleClickRemove}
+        >
+          delete
+        </i>
       </div>
     </div>
   );

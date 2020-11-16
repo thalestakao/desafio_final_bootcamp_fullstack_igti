@@ -6,9 +6,9 @@ const transactionRouter = express.Router();
 
 transactionRouter.get('/', transactionService.index);
 transactionRouter.get('/periods', transactionService.periodsList);
+transactionRouter.put('/:id', transactionService.update);
 transactionRouter.post('/', transactionService.create);
-transactionRouter.put('/', transactionService.update);
-transactionRouter.delete('/', transactionService.remove);
+transactionRouter.delete('/:id', transactionService.remove);
 
 transactionRouter.use((err, req, res, next) => {
   logger.error(`${req.method} ${req.baseUrl} - ${err.message}`);

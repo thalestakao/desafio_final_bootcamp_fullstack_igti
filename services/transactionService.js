@@ -67,8 +67,26 @@ export const periodsList = async (req, res, next) => {
   }
 };
 
-export const update = (req, res, next) => {};
-export const remove = (req, res, next) => {};
+export const update = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const item = await TransactionModel.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.status(201).send(item);
+  } catch (err) {
+    next(err);
+  }
+};
+export const remove = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const item = await TransactionModel.findByIdAndDelete(id);
+    res.status(201).send(item);
+  } catch (err) {
+    next(err);
+  }
+};
 
 const converMonth = (month) => {
   if (month < 1 || month > 12) {
