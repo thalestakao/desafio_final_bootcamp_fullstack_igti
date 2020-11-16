@@ -1,3 +1,4 @@
+import { set } from 'mongoose';
 import React, { useEffect, useState } from 'react';
 import ModalTransaction from './components/ModalTransaction';
 import PeriodSelector from './components/PeriodSelector';
@@ -7,6 +8,7 @@ import TransactionService from './services/TransactionService';
 
 export default function App() {
   const [registers, setRegisters] = useState([]);
+  const [originalRegisters, setOriginalRegisters] = useState([]);
   const [totalRegisters, setTotalRegisters] = useState(0);
   const [incomes, setIncomes] = useState(0);
   const [expenses, setExpenses] = useState(0);
@@ -29,12 +31,15 @@ export default function App() {
       setExpenses(expenses);
       setTotalValue(incomes - expenses);
       setRegisters(registers);
+      setOriginalRegisters(registers);
     });
   };
+
   const handleClickedAndSelectedRegisterCreateOrUpdate = (registerEdit) => {
     setSelectedRegister(registerEdit);
     setIsModalOpen(true);
   };
+
   const handleClickedAndSelectedRegisterToRemove = (item) => {
     TransactionService.remove(item._id).then((response) => {
       if (response.data._id) {
@@ -47,10 +52,34 @@ export default function App() {
       }
     });
   };
+
   const handleOnClose = (event) => {
     setIsModalOpen(false);
     setSelectedRegister({});
   };
+
+  const handleFilter = (filterText) => {
+    const filteredRegisters = originalRegisters.filter((register) =>
+      register.description.toUpperCase().includes(filterText.toUpperCase())
+    );
+    let incomes = 0;
+    let expenses = 0;
+    let totalValue = 0;
+    for (const register of filteredRegisters) {
+      if (register.type === '+') {
+        incomes += register.value;
+      } else {
+        expenses += register.value;
+      }
+    }
+    totalValue = incomes - expenses;
+    setIncomes(incomes);
+    setExpenses(expenses);
+    setTotalValue(totalValue);
+    setTotalRegisters(filteredRegisters.length);
+    setRegisters(filteredRegisters);
+  };
+
   const handlePersistData = (formData, idSelected) => {
     if (!idSelected) {
       TransactionService.create(formData).then((response) => {
@@ -104,12 +133,22 @@ export default function App() {
         ></Result>
       </div>
       <div className="row">
-        <button
-          className="waves-effect waves-light btn"
-          onClick={(e) => setIsModalOpen(true)}
-        >
-          + NOVO LANÇAMENTO
-        </button>
+        <div className="input-field col s2">
+          <button
+            className="waves-effect waves-light btn"
+            onClick={(e) => setIsModalOpen(true)}
+          >
+            + NOVO LANÇAMENTO
+          </button>
+        </div>
+        <div className="input-field col s10">
+          <input
+            type="text"
+            id="filterText"
+            onChange={(e) => handleFilter(e.target.value)}
+          />
+          <label htmlFor="filterText"></label>
+        </div>
       </div>
       <div className="row">
         <span>{sucessMessage || errorMessage}</span>
